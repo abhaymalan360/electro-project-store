@@ -180,7 +180,7 @@ export default function CartPage() {
 
       // WhatsApp redirection for UPI payments
       if (paymentMethod === "upi") {
-        const phoneNumber = "8979370679";
+        const phoneNumber = "+918979370679";
         const message = `*Payment Confirmation*\n\n*Order ID:* ${orderId}\n*Name:* ${deliveryForm.name}\n*Amount:* ₹${totalPrice}\n*Address:* ${deliveryAddress}\n\nI have completed the payment. Please find the screenshot attached.`;
 
         const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
@@ -918,7 +918,7 @@ export default function CartPage() {
                 {paymentMethod === "upi" && (
                   <button
                     onClick={() => {
-                      const phoneNumber = "8979370679";
+                      const phoneNumber = "+918979370679";
                       const fullAddress = deliveryForm.deliveryType === "chandigarh-university"
                         ? `Chandigarh University${deliveryForm.hostelBlock ? ` · ${deliveryForm.hostelBlock}` : ""}${deliveryForm.roomNumber ? ` · Room ${deliveryForm.roomNumber}` : ""}`
                         : `${deliveryForm.address}, ${deliveryForm.city} - ${deliveryForm.pincode}`;
