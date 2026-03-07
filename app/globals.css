@@ -1,26 +1,426 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================
+   THEME: CSS Custom Properties
+   ============================ */
+:root,
+.dark {
+  --bg-primary: #030712;
+  --bg-secondary: #111827;
+  --bg-card: #111827;
+  --bg-card-hover: #1f2937;
+  --bg-surface: rgba(255, 255, 255, 0.02);
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+  --bg-input: rgba(17, 24, 39, 0.9);
+  --border-primary: rgba(255, 255, 255, 0.06);
+  --border-secondary: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(255, 255, 255, 0.2);
+  --text-primary: #ffffff;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+  --scrollbar-track: #0a0a0a;
+  --scrollbar-thumb: #22d3ee33;
+  --scrollbar-hover: #22d3ee66;
+  --card-shine: rgba(255, 255, 255, 0.03);
+  --selection-bg: #22d3ee33;
+  --selection-text: #fff;
+  --nav-bg: rgba(3, 7, 18, 0.9);
+  --modal-bg: #111827;
+  --badge-bg: rgba(255, 255, 255, 0.05);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+}
+
+.light {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f1f5f9;
+  --bg-surface: rgba(0, 0, 0, 0.02);
+  --bg-overlay: rgba(255, 255, 255, 0.7);
+  --bg-input: rgba(255, 255, 255, 0.95);
+  --border-primary: rgba(0, 0, 0, 0.08);
+  --border-secondary: rgba(0, 0, 0, 0.12);
+  --border-hover: rgba(0, 0, 0, 0.2);
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+  --scrollbar-track: #f1f5f9;
+  --scrollbar-thumb: #0891b233;
+  --scrollbar-hover: #0891b266;
+  --card-shine: rgba(0, 0, 0, 0.02);
+  --selection-bg: #0891b233;
+  --selection-text: #0f172a;
+  --nav-bg: rgba(248, 250, 252, 0.92);
+  --modal-bg: #ffffff;
+  --badge-bg: rgba(0, 0, 0, 0.05);
+  --shadow-color: rgba(0, 0, 0, 0.08);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ============================
+   BASE STYLES
+   ============================ */
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ============================
+   LIGHT THEME OVERRIDES
+   ============================ */
+
+/* --- Backgrounds --- */
+.light body,
+.light main {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Override Tailwind bg-gray-950 in light mode */
+.light .bg-gray-950 {
+  background-color: var(--bg-primary) !important;
+}
+
+.light .bg-gray-900 {
+  background-color: var(--bg-secondary) !important;
+}
+
+.light .bg-gray-900\/80 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.light .bg-gray-900\/90 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.light .bg-gray-800 {
+  background-color: #e2e8f0 !important;
+}
+
+.light .bg-gray-800\/60 {
+  background-color: rgba(226, 232, 240, 0.6) !important;
+}
+
+/* --- Text Colors --- */
+.light .text-white {
+  color: var(--text-primary) !important;
+}
+
+.light .text-gray-300 {
+  color: var(--text-secondary) !important;
+}
+
+.light .text-gray-400 {
+  color: var(--text-muted) !important;
+}
+
+.light .text-gray-500 {
+  color: var(--text-dim) !important;
+}
+
+.light .text-gray-600 {
+  color: #94a3b8 !important;
+}
+
+.light .text-gray-700 {
+  color: #64748b !important;
+}
+
+/* --- Borders --- */
+.light .border-white\/5 {
+  border-color: var(--border-primary) !important;
+}
+
+.light .border-white\/10 {
+  border-color: var(--border-secondary) !important;
+}
+
+.light .border-white\/20 {
+  border-color: var(--border-hover) !important;
+}
+
+.light .border-gray-700 {
+  border-color: #e2e8f0 !important;
+}
+
+.light .border-gray-800 {
+  border-color: #e2e8f0 !important;
+}
+
+/* --- Navbar --- */
+.light nav.bg-gray-950\/90,
+.light .bg-gray-950\/90 {
+  background-color: var(--nav-bg) !important;
+  backdrop-filter: blur(12px);
+}
+
+.light .bg-gray-950\/95 {
+  background-color: rgba(248, 250, 252, 0.98) !important;
+}
+
+/* --- Buttons & Interactive --- */
+.light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.light .hover\:bg-white\/5:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.light .hover\:bg-white\/10:hover {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.light .bg-white\/\[0\.01\] {
+  background-color: rgba(0, 0, 0, 0.01) !important;
+}
+
+.light .bg-white\/\[0\.02\] {
+  background-color: rgba(0, 0, 0, 0.02) !important;
+}
+
+/* Hover text in light mode */
+.light .hover\:text-white:hover {
+  color: var(--text-primary) !important;
+}
+
+/* --- Cards --- */
+.light .bg-gray-900\/50 {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.light .bg-gray-900\/60 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* --- Shadows --- */
+.light .shadow-black\/30 {
+  --tw-shadow-color: var(--shadow-color) !important;
+}
+
+.light .shadow-2xl {
+  box-shadow: 0 20px 50px -12px var(--shadow-color) !important;
+}
+
+/* --- Input fields --- */
+.light input[type="text"],
+.light input[type="email"],
+.light input[type="tel"],
+.light input[type="number"],
+.light select,
+.light textarea {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+.light input::placeholder,
+.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+.light input:focus,
+.light textarea:focus,
+.light select:focus {
+  border-color: #0891b2 !important;
+}
+
+/* --- Modal --- */
+.light .bg-black\/70 {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* --- Footer --- */
+.light footer {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* --- Gradient overlays that look weird in light mode --- */
+.light .from-gray-950 {
+  --tw-gradient-from: var(--bg-primary) !important;
+}
+
+.light .to-gray-950 {
+  --tw-gradient-to: var(--bg-primary) !important;
+}
+
+.light .via-gray-950 {
+  --tw-gradient-via: var(--bg-primary) !important;
+}
+
+/* --- Code blocks --- */
+.light pre,
+.light code {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+/* --- Cyan accents stay the same in both themes --- */
+/* (no overrides needed) */
+
+/* --- Ring colors --- */
+.light .ring-gray-950 {
+  --tw-ring-color: var(--bg-primary) !important;
+}
+
+/* ============================
+   SCROLLBAR
+   ============================ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-hover);
+}
+
+/* ============================
+   ANIMATIONS
+   ============================ */
+.animate-in {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 5s ease-in-out 1.5s infinite;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s ease-out forwards;
+}
+
+.animate-fade-in-up-delay-1 {
+  animation: fadeInUp 0.7s ease-out 0.15s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-2 {
+  animation: fadeInUp 0.7s ease-out 0.3s forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up-delay-3 {
+  animation: fadeInUp 0.7s ease-out 0.45s forwards;
+  opacity: 0;
+}
+
+@keyframes pulseGlow {
+
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+/* Gradient text utility */
+.gradient-text-cyan {
+  background: linear-gradient(135deg, #22d3ee, #06b6d4, #14b8a6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card shine effect on hover */
+.card-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--card-shine), transparent);
+  transition: left 0.5s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.card-shine:hover::before {
+  left: 100%;
+}
+
+/* Selection color */
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-text);
 }

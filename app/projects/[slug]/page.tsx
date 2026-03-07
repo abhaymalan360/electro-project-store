@@ -3,14 +3,11 @@
 import { getProjectBySlug, projects } from "@/data/projects";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ShoppingCart, ArrowLeft, Cpu, Zap, Package, Code2, CircuitBoard, Tag, CheckCircle } from "lucide-react";
+import Image from "next/image";
+import { ShoppingCart, ArrowLeft, Cpu, Zap, Package, Code2, CircuitBoard, Tag, CheckCircle, Plus, Minus, Trash2 } from "lucide-react";
 import { useCart } from "@/components/CartContext";
+import { useToast } from "@/components/ToastContext";
 import { useState } from "react";
-
-// Generate static params
-export async function generateStaticParams() {
-  return projects.map((p) => ({ slug: p.slug }));
-}
 
 const subjectColors: Record<string, string> = {
   "Engineering Physics": "text-blue-400 border-blue-500/30 bg-blue-500/10",
@@ -23,16 +20,33 @@ function ProjectDetailClient({ slug }: { slug: string }) {
   const project = getProjectBySlug(slug);
   if (!project) notFound();
 
-  const { addToCart } = useCart();
-  const [added, setAdded] = useState(false);
+  const { items, addToCart, updateQuantity, removeFromCart } = useCart();
+  const { showToast } = useToast();
+  const [imgError, setImgError] = useState(false);
+
+  const cartItem = items.find((i) => i.project.id === project.id);
+  const quantity = cartItem ? cartItem.quantity : 0;
 
   const handleAdd = () => {
     addToCart(project);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    showToast(`${project.title} added to cart!`, "cart");
+  };
+
+  const handleIncrease = () => {
+    updateQuantity(project.id, quantity + 1);
+  };
+
+  const handleDecrease = () => {
+    if (quantity <= 1) {
+      removeFromCart(project.id);
+      showToast(`${project.title} removed from cart`, "info");
+    } else {
+      updateQuantity(project.id, quantity - 1);
+    }
   };
 
   const isESP32 = project.technology === "ESP32";
+  const hasRealImage = project.image && project.image.endsWith(".png");
 
   return (
     <main className="min-h-screen bg-gray-950 text-white pt-24 pb-20">
@@ -49,6 +63,22 @@ function ProjectDetailClient({ slug }: { slug: string }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Project Image Hero */}
+            {hasRealImage && !imgError && (
+              <div className="relative h-64 sm:h-80 rounded-2xl overflow-hidden border border-gray-800">
+                <Image
+                  src={project.image}
+                  alt={project.title}
+                  fill
+                  className="object-cover"
+                  onError={() => setImgError(true)}
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  priority
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-950/60 via-transparent to-transparent" />
+              </div>
+            )}
+
             {/* Title block */}
             <div>
               <div className="flex flex-wrap gap-2 mb-4">
@@ -122,6 +152,20 @@ function ProjectDetailClient({ slug }: { slug: string }) {
           {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-4">
+              {/* Project image in sidebar */}
+              {hasRealImage && !imgError && (
+                <div className="relative h-48 rounded-2xl overflow-hidden border border-gray-800">
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    className="object-cover"
+                    onError={() => setImgError(true)}
+                    sizes="33vw"
+                  />
+                </div>
+              )}
+
               {/* Price card */}
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
                 <div className="mb-6">
@@ -132,24 +176,55 @@ function ProjectDetailClient({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                <button
-                  onClick={handleAdd}
-                  className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 ${
-                    added
-                      ? "bg-green-500/20 border border-green-500/50 text-green-400"
-                      : "bg-cyan-500 text-gray-950 hover:bg-cyan-400 hover:scale-[1.02] shadow-lg shadow-cyan-500/20"
-                  }`}
-                >
-                  <ShoppingCart size={18} />
-                  {added ? "✓ Added to Cart!" : "Add to Cart"}
-                </button>
-
-                <Link
-                  href="/cart"
-                  className="w-full flex items-center justify-center gap-2 py-3 mt-3 bg-gray-800 border border-gray-700 text-gray-300 hover:text-white hover:bg-gray-700 rounded-xl font-semibold text-sm transition-all"
-                >
-                  View Cart
-                </Link>
+                {quantity > 0 ? (
+                  <>
+                    {/* Quantity Controls */}
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleDecrease}
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold transition-all duration-200 ${quantity <= 1
+                            ? "bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20"
+                            : "bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+                          }`}
+                      >
+                        {quantity <= 1 ? <Trash2 size={16} /> : <Minus size={16} />}
+                      </button>
+                      <div className="flex-1 flex flex-col items-center py-2 bg-gray-800/50 rounded-xl border border-gray-700">
+                        <span className="text-2xl font-black text-white">{quantity}</span>
+                        <span className="text-gray-500 text-[10px] uppercase tracking-wider font-semibold">in cart</span>
+                      </div>
+                      <button
+                        onClick={handleIncrease}
+                        className="w-12 h-12 rounded-xl flex items-center justify-center bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 font-bold transition-all duration-200"
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
+                    <Link
+                      href="/cart"
+                      className="w-full flex items-center justify-center gap-2 py-3 mt-3 bg-cyan-500 text-gray-950 hover:bg-cyan-400 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] shadow-lg shadow-cyan-500/20"
+                    >
+                      <ShoppingCart size={16} />
+                      Go to Cart · ₹{project.price * quantity}
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleAdd}
+                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-bold text-sm transition-all duration-200 bg-cyan-500 text-gray-950 hover:bg-cyan-400 hover:scale-[1.02] shadow-lg shadow-cyan-500/20"
+                    >
+                      <ShoppingCart size={18} />
+                      Add to Cart
+                    </button>
+                    <Link
+                      href="/cart"
+                      className="w-full flex items-center justify-center gap-2 py-3 mt-3 bg-gray-800 border border-gray-700 text-gray-300 hover:text-white hover:bg-gray-700 rounded-xl font-semibold text-sm transition-all"
+                    >
+                      View Cart
+                    </Link>
+                  </>
+                )}
               </div>
 
               {/* What's included */}
