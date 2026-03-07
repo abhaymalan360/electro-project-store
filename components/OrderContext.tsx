@@ -1,12 +1,34 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback } from "react";
-import { CartItem } from "./CartContext";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { db } from "@/lib/firebase";
+import {
+    collection,
+    addDoc,
+    query,
+    where,
+    onSnapshot,
+    orderBy,
+    updateDoc,
+    doc,
+    getDoc,
+    Timestamp,
+    setDoc
+} from "firebase/firestore";
+import { useAuth } from "./AuthContext";
+import { Project } from "@/data/projects";
 
-export type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered";
+export interface CartItem {
+    project: Project;
+    quantity: number;
+}
+
+export type OrderStatus = "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
 
 export interface Order {
     id: string;
+    userId: string;
+    userEmail: string;
     items: CartItem[];
     totalPrice: number;
     status: OrderStatus;
@@ -21,109 +43,196 @@ export interface Order {
         timestamp: string;
         message: string;
     }[];
+    rating?: number;
+    feedback?: string;
+    ratedAt?: string;
 }
 
 interface OrderContextType {
     orders: Order[];
-    placeOrder: (items: CartItem[], totalPrice: number, deliveryInfo: Order["deliveryInfo"]) => string;
-    getOrder: (id: string) => Order | undefined;
+    allOrders: Order[]; // For Admin
+    placeOrder: (items: CartItem[], totalPrice: number, deliveryInfo: Order["deliveryInfo"]) => Promise<string>;
+    updateOrderStatus: (orderId: string, newStatus: OrderStatus, message: string) => Promise<void>;
+    submitOrderFeedback: (orderId: string, rating: number, feedback: string) => Promise<void>;
+    loading: boolean;
+    error: string | null;
+    allOrdersError: string | null;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
-function generateOrderId(): string {
-    const prefix = "EPS";
-    const timestamp = Date.now().toString(36).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-    return `${prefix}-${timestamp}-${random}`;
-}
-
 export function OrderProvider({ children }: { children: React.ReactNode }) {
+    const { user, isAdmin } = useAuth();
     const [orders, setOrders] = useState<Order[]>([]);
+    const [allOrders, setAllOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [allOrdersError, setAllOrdersError] = useState<string | null>(null);
+
+    // Fetch user-specific orders
+    useEffect(() => {
+        if (!user) {
+            setOrders([]);
+            setLoading(false);
+            return;
+        }
+
+        const q = query(
+            collection(db, "orders"),
+            where("userEmail", "==", user.email)
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedOrders = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as Order));
+
+            // Sort locally to bypass Firestore Index requirement
+            const sortedOrders = fetchedOrders.sort((a, b) =>
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+
+            setOrders(sortedOrders);
+            setLoading(false);
+            setError(null);
+        }, (error) => {
+            console.error("Error fetching orders:", error);
+            setError("Failed to sync your orders. Please check your internet connection.");
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [user]);
+
+    // Fetch ALL orders (only if Admin)
+    useEffect(() => {
+        if (!isAdmin) {
+            setAllOrders([]);
+            return;
+        }
+
+        const q = query(
+            collection(db, "orders"),
+            orderBy("createdAt", "desc")
+        );
+
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const fetchedOrders = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            } as Order));
+            setAllOrders(fetchedOrders);
+            setAllOrdersError(null);
+        }, (error) => {
+            console.error("Error fetching all orders:", error);
+            setAllOrdersError("Failed to fetch all orders. Check Firestore rules or missing indexes.");
+        });
+
+        return () => unsubscribe();
+    }, [isAdmin]);
 
     const placeOrder = useCallback(
-        (items: CartItem[], totalPrice: number, deliveryInfo: Order["deliveryInfo"]): string => {
-            const id = generateOrderId();
-            const now = new Date().toISOString();
+        async (items: CartItem[], totalPrice: number, deliveryInfo: Order["deliveryInfo"]): Promise<string> => {
+            if (!user) throw new Error("Must be logged in to place an order");
 
-            const newOrder: Order = {
-                id,
-                items: [...items],
-                totalPrice,
-                status: "pending",
-                createdAt: now,
-                deliveryInfo,
-                statusHistory: [
-                    {
-                        status: "pending",
-                        timestamp: now,
-                        message: "Order placed successfully. Awaiting payment confirmation.",
-                    },
-                ],
-            };
+            try {
+                const now = new Date().toISOString();
 
-            setOrders((prev) => [newOrder, ...prev]);
+                // Clean up items for Firestore (Firestore doesn't like some custom objects)
+                const cleanItems = items.map(item => ({
+                    quantity: item.quantity,
+                    project: {
+                        id: item.project.id,
+                        title: item.project.title,
+                        price: item.project.price,
+                        technology: item.project.technology
+                    }
+                }));
 
-            // Simulate status updates for demo purposes
-            setTimeout(() => {
-                setOrders((prev) =>
-                    prev.map((o) =>
-                        o.id === id
-                            ? {
-                                ...o,
-                                status: "confirmed" as OrderStatus,
-                                statusHistory: [
-                                    ...o.statusHistory,
-                                    {
-                                        status: "confirmed" as OrderStatus,
-                                        timestamp: new Date().toISOString(),
-                                        message: "Payment confirmed! Preparing your project kit.",
-                                    },
-                                ],
-                            }
-                            : o
-                    )
-                );
-            }, 15000); // 15 seconds
+                // FIX: Generate ID locally so we don't have to wait for the server
+                const orderRef = doc(collection(db, "orders"));
+                const orderId = orderRef.id;
 
-            setTimeout(() => {
-                setOrders((prev) =>
-                    prev.map((o) =>
-                        o.id === id
-                            ? {
-                                ...o,
-                                status: "shipped" as OrderStatus,
-                                statusHistory: [
-                                    ...o.statusHistory,
-                                    {
-                                        status: "confirmed" as OrderStatus,
-                                        timestamp: new Date(Date.now() - 10000).toISOString(),
-                                        message: "Payment confirmed! Preparing your project kit.",
-                                    },
-                                    {
-                                        status: "shipped" as OrderStatus,
-                                        timestamp: new Date().toISOString(),
-                                        message: "Project kit has been shipped! Estimated delivery: 2-3 days.",
-                                    },
-                                ],
-                            }
-                            : o
-                    )
-                );
-            }, 30000); // 30 seconds
+                const orderData = {
+                    userId: user.uid, // Cleanly use uid now
+                    userEmail: user.email,
+                    items: cleanItems,
+                    totalPrice,
+                    status: "pending" as OrderStatus,
+                    createdAt: now,
+                    deliveryInfo,
+                    statusHistory: [
+                        {
+                            status: "pending" as OrderStatus,
+                            timestamp: now,
+                            message: "Order placed successfully. Awaiting WhatsApp confirmation for payment and delivery details.",
+                        },
+                    ],
+                };
 
-            return id;
+                console.log("Placing order with local ID:", orderId, orderData);
+
+                // We await for a max of 3 seconds to ensure the write starts
+                await Promise.race([
+                    setDoc(orderRef, orderData),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 3000))
+                ]).catch(err => {
+                    console.warn("Background save initial attempt timed out or failed, but continuing UI flow.", err);
+                });
+
+                // Return ID immediately to move to next screen
+                return orderId;
+            } catch (error: any) {
+                console.error("Error in placeOrder:", error);
+                throw error;
+            }
         },
-        []
+        [user]
     );
 
-    const getOrder = useCallback(
-        (id: string) => orders.find((o) => o.id === id),
-        [orders]
-    );
+    const updateOrderStatus = useCallback(async (orderId: string, newStatus: OrderStatus, message: string) => {
+        if (!isAdmin) throw new Error("Only admins can update order status");
+
+        const orderRef = doc(db, "orders", orderId);
+        const orderSnap = await getDoc(orderRef);
+
+        if (orderSnap.exists()) {
+            const currentHistory = orderSnap.data().statusHistory || [];
+            await updateDoc(orderRef, {
+                status: newStatus,
+                statusHistory: [
+                    ...currentHistory,
+                    {
+                        status: newStatus,
+                        timestamp: new Date().toISOString(),
+                        message: message
+                    }
+                ]
+            });
+        }
+    }, [isAdmin]);
+
+    const submitOrderFeedback = useCallback(async (orderId: string, rating: number, feedback: string) => {
+        const orderRef = doc(db, "orders", orderId);
+        await updateDoc(orderRef, {
+            rating,
+            feedback,
+            ratedAt: new Date().toISOString()
+        });
+    }, []);
 
     return (
-        <OrderContext.Provider value={{ orders, placeOrder, getOrder }}>
+        <OrderContext.Provider value={{
+            orders,
+            allOrders,
+            placeOrder,
+            updateOrderStatus,
+            submitOrderFeedback,
+            loading,
+            error,
+            allOrdersError
+        }}>
             {children}
         </OrderContext.Provider>
     );

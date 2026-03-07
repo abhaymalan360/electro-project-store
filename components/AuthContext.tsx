@@ -6,10 +6,13 @@ import {
     signInWithPopup,
     signOut,
     onAuthStateChanged,
+    setPersistence,
+    browserLocalPersistence,
     User as FirebaseUser,
 } from "firebase/auth";
 
 export interface User {
+    uid: string;
     name: string;
     email: string;
     avatar?: string;
@@ -19,6 +22,7 @@ interface AuthContextType {
     user: User | null;
     isLoggedIn: boolean;
     loading: boolean;
+    isAdmin: boolean;
     loginWithGoogle: () => Promise<void>;
     logout: () => Promise<void>;
 }
@@ -27,6 +31,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function firebaseUserToUser(fbUser: FirebaseUser): User {
     return {
+        uid: fbUser.uid,
         name: fbUser.displayName || "User",
         email: fbUser.email || "",
         avatar: fbUser.photoURL || undefined,
@@ -35,34 +40,68 @@ function firebaseUserToUser(fbUser: FirebaseUser): User {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
+
+    const ADMIN_EMAIL = "abhaymalan360@gmail.com";
 
     // Listen for auth state changes (session persists across refreshes)
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
-            setUser(fbUser ? firebaseUserToUser(fbUser) : null);
+            if (fbUser) {
+                setUser(firebaseUserToUser(fbUser));
+                setIsAdmin(fbUser.email === ADMIN_EMAIL);
+            } else {
+                setUser(null);
+                setIsAdmin(false);
+            }
             setLoading(false);
         });
         return () => unsubscribe();
     }, []);
 
     const loginWithGoogle = useCallback(async () => {
+        // Check if API key is configured
+        if (!process.env.NEXT_PUBLIC_FIREBASE_API_KEY || process.env.NEXT_PUBLIC_FIREBASE_API_KEY === "YOUR_FIREBASE_API_KEY_HERE") {
+            alert("Firebase API Key is missing! Please add it to your .env.local file.");
+            return;
+        }
+
         try {
             // Set a timeout to detect if popup is blocked
-            const timeoutId = setTimeout(() => {
+            const popupTimeoutId = setTimeout(() => {
                 console.warn("Login popup may be blocked by browser. Allow popups for this site.");
             }, 3000);
 
+            // Set a longer timeout for the "taking too much time" issue
+            const hangTimeoutId = setTimeout(() => {
+                alert("The login is taking longer than expected. This usually happens if the Google Cloud API restrictions aren't fully set yet. Please double-check your API Key settings as instructed earlier.");
+            }, 15000);
+
+            // Ensure persistence is set to local (stays logged in after refresh/closing browser)
+            await setPersistence(auth, browserLocalPersistence);
+
             const result = await signInWithPopup(auth, googleProvider);
-            clearTimeout(timeoutId);
-            setUser(firebaseUserToUser(result.user));
+            clearTimeout(popupTimeoutId);
+            clearTimeout(hangTimeoutId);
+            const loggedInUser = firebaseUserToUser(result.user);
+            setUser(loggedInUser);
+            setIsAdmin(result.user.email === ADMIN_EMAIL);
         } catch (error: any) {
             if (error.code === "auth/popup-blocked") {
                 alert("Popup was blocked! Please allow popups for this site in your browser settings.");
             } else if (error.code === "auth/popup-closed-by-user") {
                 // User closed the popup - do nothing
+            } else if (error.code === "auth/api-key-not-valid") {
+                alert("The Firebase API Key provided is invalid. Please check your .env.local configuration.");
             } else if (error.code !== "auth/cancelled-popup-request") {
-                console.error("Google login error:", error.code, error.message);
+                console.error("Firebase Auth Error Details:", {
+                    code: error.code,
+                    message: error.message,
+                    customData: error.customData,
+                    email: error.customData?.email
+                });
+                alert(`Login failed: ${error.message} (Error Code: ${error.code})`);
             }
         }
     }, []);
@@ -77,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, isLoggedIn: !!user, loading, loginWithGoogle, logout }}>
+        <AuthContext.Provider value={{ user, isLoggedIn: !!user, isAdmin, loading, loginWithGoogle, logout }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,8 +1,9 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAQ7w85qaa2ug7KjPED_ytXRSSZs7EFSYs",
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: "electro-project-store.firebaseapp.com",
     projectId: "electro-project-store",
     storageBucket: "electro-project-store.firebasestorage.app",
@@ -15,6 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 
 // Pre-configure Google provider for faster login
 export const googleProvider = new GoogleAuthProvider();

@@ -43,9 +43,9 @@
   --border-secondary: rgba(0, 0, 0, 0.12);
   --border-hover: rgba(0, 0, 0, 0.2);
   --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --text-muted: #64748b;
-  --text-dim: #94a3b8;
+  --text-secondary: #1e293b;
+  --text-muted: #475569;
+  --text-dim: #64748b;
   --scrollbar-track: #f1f5f9;
   --scrollbar-thumb: #0891b233;
   --scrollbar-hover: #0891b266;
@@ -125,19 +125,19 @@ html {
 }
 
 .light .text-gray-400 {
-  color: var(--text-muted) !important;
-}
-
-.light .text-gray-500 {
   color: var(--text-dim) !important;
 }
 
+.light .text-gray-500 {
+  color: var(--text-muted) !important;
+}
+
 .light .text-gray-600 {
-  color: #94a3b8 !important;
+  color: #475569 !important;
 }
 
 .light .text-gray-700 {
-  color: #64748b !important;
+  color: #1e293b !important;
 }
 
 /* --- Borders --- */
@@ -151,6 +151,10 @@ html {
 
 .light .border-white\/20 {
   border-color: var(--border-hover) !important;
+}
+
+.light .border-gray-700 {
+  border-color: #e2e8f0 !important;
 }
 
 .light .border-gray-700 {
@@ -423,4 +427,73 @@ html {
 ::selection {
   background: var(--selection-bg);
   color: var(--selection-text);
+}
+
+/* ============================
+   PREMIUM UI UTILITIES
+   ============================ */
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.light .glass-morphism {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+.glass-morphism-cyan {
+  background: rgba(34, 211, 238, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(34, 211, 238, 0.1);
+}
+
+.shadow-premium {
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.status-glow-pending {
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.15);
+}
+
+.status-glow-confirmed {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+}
+
+.status-glow-shipped {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
+}
+
+.status-glow-delivered {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.15);
+}
+
+/* --- Improved Typography Spacing --- */
+.pro-heading {
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.pro-subtext {
+  letter-spacing: 0.01em;
+  line-height: 1.6;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }

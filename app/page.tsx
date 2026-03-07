@@ -189,20 +189,36 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { name: "Emerging & Disruptive Tech", anchor: "Emerging and Disruptive Technologies", color: "from-orange-900/30 to-transparent", border: "border-orange-500/20 hover:border-orange-500/50", text: "text-orange-400", count: 18 },
-              { name: "Engineering Physics", anchor: "Engineering Physics", color: "from-blue-900/30 to-transparent", border: "border-blue-500/20 hover:border-blue-500/50", text: "text-blue-400", count: 15 },
-              { name: "Digital Electronics", anchor: "Digital Electronics", color: "from-purple-900/30 to-transparent", border: "border-purple-500/20 hover:border-purple-500/50", text: "text-purple-400", count: 18 },
-              { name: "Semiconductor Physics", anchor: "Semiconductor Physics", color: "from-green-900/30 to-transparent", border: "border-green-500/20 hover:border-green-500/50", text: "text-green-400", count: 8 },
+              { name: "Emerging & Disruptive Tech", anchor: "Emerging and Disruptive Technologies", icon: <Zap size={24} />, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20", shadow: "shadow-amber-500/20", count: 18 },
+              { name: "Engineering Physics", anchor: "Engineering Physics", icon: <Cpu size={24} />, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20", shadow: "shadow-blue-500/20", count: 15 },
+              { name: "Digital Electronics", anchor: "Digital Electronics", icon: <CircuitBoard size={24} />, color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20", shadow: "shadow-indigo-500/20", count: 18 },
+              { name: "Semiconductor Physics", anchor: "Semiconductor Physics", icon: <Cpu size={24} />, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20", shadow: "shadow-emerald-500/20", count: 8 },
             ].map((cat) => (
               <Link
                 key={cat.name}
                 href={`/projects#${cat.anchor}`}
-                className={`card-shine group p-6 bg-gradient-to-br ${cat.color} border ${cat.border} rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
+                className={`group relative p-8 bg-gray-900/40 border border-white/5 rounded-[2.5rem] transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:${cat.shadow} glass-morphism overflow-hidden`}
               >
-                <div className={`text-4xl font-black ${cat.text} mb-2`}>{cat.count}</div>
-                <div className="text-white font-bold text-sm mb-1">{cat.name}</div>
-                <div className="text-gray-500 text-xs font-medium">projects available</div>
-                <ArrowRight size={16} className={`${cat.text} mt-4 group-hover:translate-x-1 transition-transform`} />
+                <div className={`absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-10 transition-opacity duration-700 pointer-events-none ${cat.color}`}>
+                  {cat.icon}
+                </div>
+
+                <div className="flex items-center justify-between mb-8">
+                  <div className={`w-14 h-14 ${cat.bg} rounded-2xl flex items-center justify-center ${cat.color} group-hover:scale-110 transition-all duration-500 border ${cat.border}`}>
+                    {cat.icon}
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-3xl font-black text-white group-hover:${cat.color} transition-colors`}>{cat.count}</p>
+                    <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest">Projects</p>
+                  </div>
+                </div>
+
+                <h3 className="text-white font-black text-lg mb-2 leading-tight group-hover:brightness-125 transition-all">{cat.name}</h3>
+                <p className="text-gray-500 text-xs font-medium mb-6">Explore the latest in {cat.name.split(' ')[0]} engineering.</p>
+
+                <div className={`flex items-center gap-2 ${cat.color} text-[10px] font-black uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-all`}>
+                  Browse Projects <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                </div>
               </Link>
             ))}
           </div>

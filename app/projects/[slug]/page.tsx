@@ -11,9 +11,17 @@ import { useState } from "react";
 
 const subjectColors: Record<string, string> = {
   "Engineering Physics": "text-blue-400 border-blue-500/30 bg-blue-500/10",
-  "Digital Electronics": "text-purple-400 border-purple-500/30 bg-purple-500/10",
-  "Semiconductor Physics": "text-green-400 border-green-500/30 bg-green-500/10",
-  "Emerging and Disruptive Technologies": "text-orange-400 border-orange-500/30 bg-orange-500/10",
+  "Digital Electronics": "text-indigo-400 border-indigo-500/30 bg-indigo-500/10",
+  "Semiconductor Physics": "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+  "Emerging and Disruptive Technologies": "text-amber-400 border-amber-500/30 bg-amber-500/10",
+};
+
+const getSubjectIcon = (subject: string) => {
+  if (subject.includes("Emerging")) return <Zap size={11} />;
+  if (subject.includes("Engineering")) return <Cpu size={11} />;
+  if (subject.includes("Digital")) return <CircuitBoard size={11} />;
+  if (subject.includes("Semiconductor")) return <Cpu size={11} />;
+  return <Tag size={11} />;
 };
 
 function ProjectDetailClient({ slug }: { slug: string }) {
@@ -83,7 +91,7 @@ function ProjectDetailClient({ slug }: { slug: string }) {
             <div>
               <div className="flex flex-wrap gap-2 mb-4">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium border rounded-full ${subjectColors[project.subject] || "text-gray-400 border-gray-700 bg-gray-800"}`}>
-                  <Tag size={11} />
+                  {getSubjectIcon(project.subject)}
                   {project.subject}
                 </span>
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold border rounded-full ${isESP32 ? "text-red-400 border-red-500/30 bg-red-500/10" : "text-cyan-400 border-cyan-500/30 bg-cyan-500/10"}`}>
@@ -183,8 +191,8 @@ function ProjectDetailClient({ slug }: { slug: string }) {
                       <button
                         onClick={handleDecrease}
                         className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold transition-all duration-200 ${quantity <= 1
-                            ? "bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20"
-                            : "bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
+                          ? "bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20"
+                          : "bg-gray-800 border border-gray-700 text-gray-300 hover:bg-gray-700 hover:text-white"
                           }`}
                       >
                         {quantity <= 1 ? <Trash2 size={16} /> : <Minus size={16} />}

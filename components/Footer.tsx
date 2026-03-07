@@ -97,46 +97,7 @@ export default function Footer() {
                     </div>
                 </div>
 
-                {/* Payment Methods */}
-                <div className="border-t border-white/5 mt-12 pt-8">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div className="flex items-center gap-2 text-gray-500 text-sm">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-400"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
-                            <span>Secure Payments</span>
-                        </div>
-                        <div className="flex items-center gap-3 flex-wrap justify-center">
-                            {/* UPI */}
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg">
-                                <svg width="20" height="14" viewBox="0 0 50 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect width="50" height="30" rx="4" fill="#56A55A" />
-                                    <text x="25" y="20" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold" fontFamily="Arial">UPI</text>
-                                </svg>
-                                <span className="text-gray-400 text-xs font-semibold">UPI</span>
-                            </div>
-                            {/* GPay */}
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z" fill="#4285F4" />
-                                </svg>
-                                <span className="text-gray-400 text-xs font-semibold">GPay</span>
-                            </div>
-                            {/* PhonePe */}
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg">
-                                <div className="w-[18px] h-[18px] rounded-sm bg-[#5F259F] flex items-center justify-center">
-                                    <span className="text-white text-[10px] font-black">P</span>
-                                </div>
-                                <span className="text-gray-400 text-xs font-semibold">PhonePe</span>
-                            </div>
-                            {/* Paytm */}
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 border border-gray-800 rounded-lg">
-                                <div className="w-[18px] h-[18px] rounded-sm bg-[#00BAF2] flex items-center justify-center">
-                                    <span className="text-white text-[10px] font-black">₹</span>
-                                </div>
-                                <span className="text-gray-400 text-xs font-semibold">Paytm</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
 
                 {/* Bottom bar */}
                 <div className="border-t border-white/5 mt-8 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-600">

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { projects, categories } from "@/data/projects";
 import ProjectCard from "@/components/ProjectCard";
-import { Search, X, SlidersHorizontal, ChevronDown, ArrowUpDown } from "lucide-react";
+import { Search, X, SlidersHorizontal, ChevronDown, ArrowUpDown, Zap, Cpu, CircuitBoard, Package } from "lucide-react";
 
 type SortOption = "default" | "price-low" | "price-high";
 
@@ -41,17 +41,17 @@ export default function ProjectsPage() {
 
   const subjectColors: Record<string, string> = {
     "all": "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
-    "Emerging and Disruptive Technologies": "text-orange-400 border-orange-500/30 bg-orange-500/10",
+    "Emerging and Disruptive Technologies": "text-amber-400 border-amber-500/30 bg-amber-500/10",
     "Engineering Physics": "text-blue-400 border-blue-500/30 bg-blue-500/10",
-    "Digital Electronics": "text-purple-400 border-purple-500/30 bg-purple-500/10",
-    "Semiconductor Physics": "text-green-400 border-green-500/30 bg-green-500/10",
+    "Digital Electronics": "text-indigo-400 border-indigo-500/30 bg-indigo-500/10",
+    "Semiconductor Physics": "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
   };
 
-  const subjectDots: Record<string, string> = {
-    "Emerging and Disruptive Technologies": "bg-orange-500",
-    "Engineering Physics": "bg-blue-500",
-    "Digital Electronics": "bg-purple-500",
-    "Semiconductor Physics": "bg-green-500",
+  const subjectIcons: Record<string, any> = {
+    "Emerging and Disruptive Technologies": <Zap size={14} />,
+    "Engineering Physics": <Cpu size={14} />,
+    "Digital Electronics": <CircuitBoard size={14} />,
+    "Semiconductor Physics": <Cpu size={14} />,
   };
 
   return (
@@ -97,8 +97,8 @@ export default function ProjectsPage() {
             <button
               onClick={() => setSelectedSubject("all")}
               className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all duration-200 ${selectedSubject === "all"
-                  ? "text-cyan-400 border-cyan-500/40 bg-cyan-500/15 shadow-sm shadow-cyan-500/10"
-                  : "text-gray-500 border-gray-800 bg-gray-900/50 hover:border-gray-700 hover:text-gray-300"
+                ? "text-cyan-400 border-cyan-500/40 bg-cyan-500/15 shadow-sm shadow-cyan-500/10"
+                : "text-gray-500 border-gray-800 bg-gray-900/50 hover:border-gray-700 hover:text-gray-300"
                 }`}
             >
               All Projects ({projects.length})
@@ -112,11 +112,13 @@ export default function ProjectsPage() {
                   key={cat}
                   onClick={() => setSelectedSubject(isActive ? "all" : cat)}
                   className={`flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-xl border transition-all duration-200 ${isActive
-                      ? `${colors} shadow-sm`
-                      : "text-gray-500 border-gray-800 bg-gray-900/50 hover:border-gray-700 hover:text-gray-300"
+                    ? `${colors} shadow-sm`
+                    : "text-gray-500 border-gray-800 bg-gray-900/50 hover:border-gray-700 hover:text-gray-300"
                     }`}
                 >
-                  <span className={`w-2 h-2 rounded-full ${subjectDots[cat] || "bg-gray-500"}`} />
+                  <span className={`${isActive ? "" : "text-gray-600"}`}>
+                    {subjectIcons[cat] || <Package size={14} />}
+                  </span>
                   {cat.replace("and Disruptive Technologies", "& DT")}
                   <span className="opacity-60">({count})</span>
                 </button>
@@ -129,8 +131,8 @@ export default function ProjectsPage() {
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-xl border transition-all duration-200 ${sortBy !== "default"
-                  ? "text-cyan-400 border-cyan-500/30 bg-cyan-500/10"
-                  : "text-gray-400 border-gray-800 bg-gray-900/50 hover:border-gray-700 hover:text-gray-300"
+                ? "text-cyan-400 border-cyan-500/30 bg-cyan-500/10"
+                : "text-gray-400 border-gray-800 bg-gray-900/50 hover:border-gray-700 hover:text-gray-300"
                 }`}
             >
               <ArrowUpDown size={14} />
@@ -148,8 +150,8 @@ export default function ProjectsPage() {
                     key={opt.value}
                     onClick={() => { setSortBy(opt.value); setShowFilters(false); }}
                     className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${sortBy === opt.value
-                        ? "text-cyan-400 bg-cyan-500/5"
-                        : "text-gray-400 hover:text-white hover:bg-white/5"
+                      ? "text-cyan-400 bg-cyan-500/5"
+                      : "text-gray-400 hover:text-white hover:bg-white/5"
                       }`}
                   >
                     {opt.label}

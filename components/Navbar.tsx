@@ -7,7 +7,7 @@ import { useCart } from "./CartContext";
 import { useAuth } from "./AuthContext";
 import { useTheme } from "./ThemeContext";
 import { projects, categories } from "@/data/projects";
-import { ShoppingCart, Menu, X, Cpu, User, LogOut, ChevronDown, Search, Sun, Moon, Monitor, Package } from "lucide-react";
+import { ShoppingCart, Menu, X, Cpu, User, LogOut, ChevronDown, Search, Sun, Moon, Monitor, Package, Zap, CircuitBoard, ChevronRight, ArrowRight } from "lucide-react";
 
 // Google SVG icon
 function GoogleIcon({ size = 18 }: { size?: number }) {
@@ -23,7 +23,7 @@ function GoogleIcon({ size = 18 }: { size?: number }) {
 
 export default function Navbar() {
     const { totalItems } = useCart();
-    const { user, isLoggedIn, loginWithGoogle, logout } = useAuth();
+    const { user, isLoggedIn, isAdmin, loginWithGoogle, logout } = useAuth();
     const { theme, setTheme } = useTheme();
     const router = useRouter();
     const [menuOpen, setMenuOpen] = useState(false);
@@ -119,11 +119,12 @@ export default function Navbar() {
         { href: "/projects", label: "Projects" },
     ];
 
-    const categoryColors: Record<string, { dot: string; text: string }> = {
-        "Emerging and Disruptive Technologies": { dot: "bg-orange-500", text: "text-orange-400" },
-        "Engineering Physics": { dot: "bg-blue-500", text: "text-blue-400" },
-        "Digital Electronics": { dot: "bg-purple-500", text: "text-purple-400" },
-        "Semiconductor Physics": { dot: "bg-green-500", text: "text-green-400" },
+    const getCategoryStyles = (cat: string) => {
+        if (cat.includes("Emerging")) return { icon: <Zap size={16} />, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/20" };
+        if (cat.includes("Engineering")) return { icon: <Cpu size={16} />, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" };
+        if (cat.includes("Digital")) return { icon: <CircuitBoard size={16} />, color: "text-indigo-400", bg: "bg-indigo-500/10", border: "border-indigo-500/20" };
+        if (cat.includes("Semiconductor")) return { icon: <Cpu size={16} />, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" };
+        return { icon: <Package size={16} />, color: "text-cyan-400", bg: "bg-cyan-500/10", border: "border-cyan-500/20" };
     };
 
     return (
@@ -163,6 +164,15 @@ export default function Navbar() {
                                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-0 group-hover:w-1/2 h-0.5 bg-cyan-400 transition-all duration-300 rounded-full" />
                                 </Link>
                             ))}
+                            {isAdmin && (
+                                <Link
+                                    href="/admin"
+                                    className="relative px-4 py-2 text-orange-400 hover:text-orange-300 text-sm font-bold transition-all duration-200 rounded-lg hover:bg-orange-500/5 group"
+                                >
+                                    Admin
+                                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-0 group-hover:w-1/2 h-0.5 bg-orange-400 transition-all duration-300 rounded-full" />
+                                </Link>
+                            )}
                             {/* Categories Dropdown */}
                             <div ref={categoriesRef} className="relative">
                                 <button
@@ -174,34 +184,42 @@ export default function Navbar() {
                                     <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-0 group-hover:w-1/2 h-0.5 bg-cyan-400 transition-all duration-300 rounded-full" />
                                 </button>
                                 {showCategories && (
-                                    <div className="absolute top-full mt-2 left-0 w-72 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl shadow-black/40 py-2 animate-in z-50">
-                                        <p className="px-4 py-2 text-gray-500 text-xs font-medium uppercase tracking-wider">Browse by Subject</p>
-                                        {categories.map((cat) => {
-                                            const c = categoryColors[cat] || { dot: "bg-gray-500", text: "text-gray-400" };
-                                            const projectCount = projects.filter(p => p.subject === cat).length;
-                                            return (
-                                                <Link
-                                                    key={cat}
-                                                    href={`/projects#${cat}`}
-                                                    onClick={() => setShowCategories(false)}
-                                                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors group"
-                                                >
-                                                    <span className={`w-2.5 h-2.5 rounded-full ${c.dot} flex-shrink-0`} />
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className={`text-sm font-medium ${c.text} group-hover:brightness-125 transition-all`}>{cat}</p>
-                                                        <p className="text-gray-600 text-xs">{projectCount} projects</p>
-                                                    </div>
-                                                    <span className="text-gray-700 text-xs">→</span>
-                                                </Link>
-                                            );
-                                        })}
-                                        <div className="border-t border-gray-800 mt-1 pt-1">
+                                    <div className="absolute top-full mt-2 left-0 w-80 bg-gray-950/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl shadow-black/50 py-3 animate-in-active z-50 glass-morphism overflow-hidden">
+                                        <div className="px-5 py-2 mb-2 border-b border-white/5">
+                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em]">Explore Subjects</p>
+                                        </div>
+                                        <div className="px-2">
+                                            {categories.map((cat) => {
+                                                const projectCount = projects.filter(p => p.subject === cat).length;
+                                                const s = getCategoryStyles(cat);
+                                                return (
+                                                    <Link
+                                                        key={cat}
+                                                        href={`/projects#${cat}`}
+                                                        onClick={() => setShowCategories(false)}
+                                                        className="flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-all duration-300 rounded-2xl group relative overflow-hidden"
+                                                    >
+                                                        <div className={`w-10 h-10 ${s.bg} rounded-xl flex items-center justify-center ${s.color} transition-all duration-500 border ${s.border} group-hover:scale-110 shadow-lg group-hover:shadow-${s.color.split('-')[1]}-500/20`}>
+                                                            {s.icon}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">{cat}</p>
+                                                            <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest mt-0.5 group-hover:text-cyan-500/70 transition-colors">
+                                                                {projectCount} Projects
+                                                            </p>
+                                                        </div>
+                                                        <ChevronRight size={14} className="text-gray-800 group-hover:text-cyan-500 group-hover:translate-x-1 transition-all" />
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                        <div className="border-t border-white/5 mt-2 pt-2 px-2">
                                             <Link
                                                 href="/projects"
                                                 onClick={() => setShowCategories(false)}
-                                                className="block px-4 py-2.5 text-cyan-400 text-xs font-semibold hover:bg-white/5 transition-colors text-center"
+                                                className="flex items-center justify-center gap-2 w-full py-3 text-cyan-400 text-[10px] font-black uppercase tracking-widest hover:bg-cyan-500/10 transition-all rounded-xl"
                                             >
-                                                View All Projects →
+                                                View All Projects <ArrowRight size={14} />
                                             </Link>
                                         </div>
                                     </div>
@@ -465,16 +483,18 @@ export default function Navbar() {
                         {mobileCategories && (
                             <div className="ml-4 flex flex-col gap-0.5 border-l-2 border-gray-800 pl-2">
                                 {categories.map((cat) => {
-                                    const c = categoryColors[cat] || { dot: "bg-gray-500", text: "text-gray-400" };
+                                    const s = getCategoryStyles(cat);
                                     return (
                                         <Link
                                             key={cat}
                                             href={`/projects#${cat}`}
                                             onClick={() => { setMenuOpen(false); setMobileCategories(false); }}
-                                            className="flex items-center gap-2.5 px-3 py-2.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg text-sm transition-all"
+                                            className="flex items-center gap-3.5 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-2xl text-sm transition-all group"
                                         >
-                                            <span className={`w-2 h-2 rounded-full ${c.dot}`} />
-                                            <span className={c.text}>{cat}</span>
+                                            <div className={`w-8 h-8 rounded-lg ${s.bg} flex items-center justify-center ${s.color} transition-all border ${s.border}`}>
+                                                {s.icon}
+                                            </div>
+                                            <span>{cat}</span>
                                         </Link>
                                     );
                                 })}
