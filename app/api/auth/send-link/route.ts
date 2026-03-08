@@ -29,16 +29,23 @@ export async function POST(request: Request) {
             handleCodeInApp: true,
         };
 
-        const link = await adminAuth.generateSignInWithEmailLink(email, actionCodeSettings);
+        let link;
+        try {
+            link = await adminAuth.generateSignInWithEmailLink(email, actionCodeSettings);
+        } catch (err: any) {
+            console.error('Firebase Admin Link Error:', err);
+            return NextResponse.json({
+                error: `Firebase Error: ${err.message}. Check your Service Account credentials in Vercel.`
+            }, { status: 500 });
+        }
 
         // 2. Current time in IST (Delhi)
-
-        // Current time in IST (Delhi)
         const now = new Date();
         const istTime = formatInTimeZone(now, 'Asia/Kolkata', "d MMMM yyyy, h:mm a 'IST'");
 
+        // 3. Send Email via Resend
         const { data, error } = await resend.emails.send({
-            from: 'Electro Project Store <onboarding@resend.dev>', // You should change this to your domain later
+            from: 'Electro Project Store <onboarding@resend.dev>',
             to: [email],
             subject: 'Login link for Electro Project Store',
             html: `
@@ -80,12 +87,14 @@ export async function POST(request: Request) {
 
         if (error) {
             console.error('Resend error:', error);
-            return NextResponse.json({ error: error.message || 'Email service error' }, { status: 400 });
+            return NextResponse.json({
+                error: `Resend Email Error: ${error.message}. Check your RESEND_API_KEY in Vercel.`
+            }, { status: 400 });
         }
 
         return NextResponse.json({ success: true, data });
     } catch (error: any) {
-        console.error('Server-side error:', error);
-        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
+        console.error('Internal Server Error:', error);
+        return NextResponse.json({ error: `Internal Server Error: ${error.message}` }, { status: 500 });
     }
 }
