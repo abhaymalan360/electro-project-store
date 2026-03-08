@@ -251,6 +251,26 @@ export default function AdminDashboard() {
                                                 )}
                                             </div>
                                         )}
+
+                                        {/* Itemized Projects List */}
+                                        <div className="mt-6 pt-6 border-t border-gray-800/50">
+                                            <p className="text-[10px] uppercase text-gray-400 font-black tracking-[0.2em] mb-3 flex items-center gap-2">
+                                                <Package size={12} className="text-cyan-500" />
+                                                Ordered Projects
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {order.items.map((item, idx) => (
+                                                    <div key={idx} className="px-3 py-1.5 bg-gray-800/40 border border-white/5 rounded-xl flex items-center gap-2.5 group/item hover:border-cyan-500/30 transition-all duration-300">
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${order.status === 'delivered' ? 'bg-green-500' : 'bg-cyan-500'} opacity-50 group-hover/item:opacity-100 shadow-[0_0_8px_rgba(34,211,238,0.3)]`} />
+                                                        <span className="text-xs font-bold text-gray-300 group-hover/item:text-white transition-colors">{item.project.title}</span>
+                                                        <div className="h-3 w-px bg-white/10" />
+                                                        <span className="text-[10px] font-black text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-lg border border-cyan-500/10 group-hover/item:border-cyan-500/30 transition-all">
+                                                            ₹{item.project.price} <span className="text-gray-600 ml-1">×{item.quantity}</span>
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="flex flex-col justify-between items-end gap-6 border-t md:border-t-0 md:border-l border-gray-800 pt-6 md:pt-0 md:pl-8">
