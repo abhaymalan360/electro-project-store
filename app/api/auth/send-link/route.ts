@@ -14,6 +14,15 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Email is required' }, { status: 400 });
         }
 
+        // Validation for Environment Variables
+        const requiredVars = ['RESEND_API_KEY', 'FIREBASE_PROJECT_ID', 'FIREBASE_CLIENT_EMAIL', 'FIREBASE_PRIVATE_KEY'];
+        const missingVars = requiredVars.filter(v => !process.env[v]);
+        if (missingVars.length > 0) {
+            return NextResponse.json({
+                error: `Configuration Error: Missing ${missingVars.join(', ')}. Please add them to Vercel Settings.`
+            }, { status: 500 });
+        }
+
         // 1. Generate the Sign-In Link using Firebase Admin
         const actionCodeSettings = {
             url: `${origin}/login-callback`,
@@ -70,12 +79,13 @@ export async function POST(request: Request) {
         });
 
         if (error) {
-            return NextResponse.json({ error }, { status: 400 });
+            console.error('Resend error:', error);
+            return NextResponse.json({ error: error.message || 'Email service error' }, { status: 400 });
         }
 
         return NextResponse.json({ success: true, data });
     } catch (error: any) {
-        console.error('Error sending email:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('Server-side error:', error);
+        return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 });
     }
 }

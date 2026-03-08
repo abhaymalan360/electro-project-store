@@ -140,7 +140,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.error || 'Failed to send login link');
+                const errorMessage = typeof data.error === 'object' ? JSON.stringify(data.error) : (data.error || 'Failed to send login link');
+                throw new Error(errorMessage);
             }
 
             window.localStorage.setItem('emailForSignIn', email);
