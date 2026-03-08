@@ -22,7 +22,8 @@ import {
     ArrowUpDown,
     CheckCircle,
     Star,
-    MessageSquare
+    MessageSquare,
+    Trash2
 } from "lucide-react";
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; bg: string; border: string; icon: any }> = {
@@ -35,7 +36,7 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; bg: stri
 
 export default function AdminDashboard() {
     const { isAdmin, loading: authLoading } = useAuth();
-    const { allOrders, updateOrderStatus, loading: ordersLoading, allOrdersError } = useOrders();
+    const { allOrders, updateOrderStatus, deleteOrder, loading: ordersLoading, allOrdersError } = useOrders();
     const router = useRouter();
 
     const [searchQuery, setSearchQuery] = useState("");
@@ -89,6 +90,20 @@ export default function AdminDashboard() {
             await updateOrderStatus(id, newStatus, message);
         } catch (error) {
             alert("Failed to update status");
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    const handleDeleteOrder = async (id: string) => {
+        if (!confirm("Are you sure you want to PERMANENTLY delete this order? This action cannot be undone.")) return;
+
+        setIsUpdating(true);
+        try {
+            await deleteOrder(id);
+            if (selectedOrderId === id) setSelectedOrderId(null);
+        } catch (error) {
+            alert("Failed to delete order");
         } finally {
             setIsUpdating(false);
         }
@@ -281,6 +296,16 @@ export default function AdminDashboard() {
                                             >
                                                 <ExternalLink size={18} />
                                             </button>
+                                            <button
+                                                className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all border border-red-500/20"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteOrder(order.id);
+                                                }}
+                                                disabled={isUpdating}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -316,9 +341,18 @@ export default function AdminDashboard() {
                                     </span>
                                     <span className="text-gray-500 text-[10px] font-mono tracking-tighter">#{selectedOrder.id}</span>
                                 </div>
-                                <button className="p-2.5 hover:bg-white/5 rounded-full transition-all border border-transparent hover:border-white/5" onClick={() => setSelectedOrderId(null)}>
-                                    <XCircle size={20} className="text-gray-400 hover:text-white" />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        className="p-2.5 hover:bg-red-500/10 rounded-full transition-all border border-transparent hover:border-red-500/20 text-gray-400 hover:text-red-500"
+                                        onClick={() => handleDeleteOrder(selectedOrder.id)}
+                                        title="Delete Order"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
+                                    <button className="p-2.5 hover:bg-white/5 rounded-full transition-all border border-transparent hover:border-white/5" onClick={() => setSelectedOrderId(null)}>
+                                        <XCircle size={20} className="text-gray-400 hover:text-white" />
+                                    </button>
+                                </div>
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">

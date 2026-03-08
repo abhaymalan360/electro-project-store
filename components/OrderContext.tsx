@@ -12,6 +12,7 @@ import {
     updateDoc,
     doc,
     getDoc,
+    deleteDoc,
     Timestamp,
     setDoc
 } from "firebase/firestore";
@@ -54,6 +55,7 @@ interface OrderContextType {
     placeOrder: (items: CartItem[], totalPrice: number, deliveryInfo: Order["deliveryInfo"]) => Promise<string>;
     updateOrderStatus: (orderId: string, newStatus: OrderStatus, message: string) => Promise<void>;
     submitOrderFeedback: (orderId: string, rating: number, feedback: string) => Promise<void>;
+    deleteOrder: (orderId: string) => Promise<void>;
     loading: boolean;
     error: string | null;
     allOrdersError: string | null;
@@ -213,6 +215,12 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
         }
     }, [isAdmin]);
 
+    const deleteOrder = useCallback(async (orderId: string) => {
+        if (!isAdmin) throw new Error("Only admins can delete orders");
+        const orderRef = doc(db, "orders", orderId);
+        await deleteDoc(orderRef);
+    }, [isAdmin]);
+
     const submitOrderFeedback = useCallback(async (orderId: string, rating: number, feedback: string) => {
         const orderRef = doc(db, "orders", orderId);
         await updateDoc(orderRef, {
@@ -228,6 +236,7 @@ export function OrderProvider({ children }: { children: React.ReactNode }) {
             allOrders,
             placeOrder,
             updateOrderStatus,
+            deleteOrder,
             submitOrderFeedback,
             loading,
             error,
