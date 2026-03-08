@@ -30,10 +30,15 @@ export default function Footer() {
                                 <Mail size={14} className="text-cyan-500" />
                                 <a href="mailto:FRSOCIALWORKS@GMAIL.COM" className="hover:text-cyan-400 transition-colors uppercase">FRSOCIALWORKS@GMAIL.COM</a>
                             </div>
-                            <div className="flex items-center gap-2.5 text-gray-500 text-sm">
+                            <a
+                                href="https://wa.me/918979370679"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2.5 text-gray-500 text-sm hover:text-cyan-400 transition-colors"
+                            >
                                 <Phone size={14} className="text-cyan-500" />
                                 <span>WhatsApp Support Available</span>
-                            </div>
+                            </a>
                         </div>
                     </div>
 
