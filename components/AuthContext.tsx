@@ -9,7 +9,6 @@ import {
     setPersistence,
     browserLocalPersistence,
     User as FirebaseUser,
-    signInWithPhoneNumber,
     sendSignInLinkToEmail,
     isSignInWithEmailLink,
     signInWithEmailLink,
@@ -19,7 +18,6 @@ export interface User {
     uid: string;
     name: string;
     email: string;
-    phoneNumber?: string;
     avatar?: string;
 }
 
@@ -29,8 +27,6 @@ interface AuthContextType {
     loading: boolean;
     isAdmin: boolean;
     loginWithGoogle: () => Promise<void>;
-    loginWithPhone: (phoneNumber: string, recaptchaVerifier: any) => Promise<any>;
-    verifyPhoneOTP: (verificationInstance: any, code: string) => Promise<void>;
     sendEmailLink: (email: string) => Promise<void>;
     logout: () => Promise<void>;
 }
@@ -133,27 +129,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
-    const loginWithPhone = useCallback(async (phoneNumber: string, recaptchaVerifier: any) => {
-        try {
-            await setPersistence(auth, browserLocalPersistence);
-            const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
-            return confirmationResult;
-        } catch (error: any) {
-            console.error("Phone login initiation failed:", error);
-            throw error;
-        }
-    }, []);
-
-    const verifyPhoneOTP = useCallback(async (confirmationResult: any, code: string) => {
-        try {
-            const result = await confirmationResult.confirm(code);
-            setUser(firebaseUserToUser(result.user));
-            setIsAdmin(result.user.email === ADMIN_EMAIL);
-        } catch (error: any) {
-            console.error("OTP verification failed:", error);
-            throw error;
-        }
-    }, []);
 
     const sendEmailLink = useCallback(async (email: string) => {
         const actionCodeSettings = {
@@ -185,13 +160,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isAdmin,
             loading,
             loginWithGoogle,
-            loginWithPhone,
-            verifyPhoneOTP,
             sendEmailLink,
             logout
         }}>
             {children}
-            <div id="recaptcha-container"></div>
         </AuthContext.Provider>
     );
 }
