@@ -591,7 +591,7 @@ export default function Navbar() {
                             </div>
                             <h2 className="text-2xl font-black text-white mb-1">
                                 {authStep === 'method' ? 'Welcome' :
-                                    authStep === 'email-input' ? 'Login Link' : 'Check Email'}
+                                    authStep === 'email-input' ? 'Login with Email' : 'Check Email'}
                             </h2>
                             <p className="text-gray-400 text-sm">
                                 {authStep === 'method' ? 'Sign in to track your orders and save favorites' :
@@ -610,7 +610,7 @@ export default function Navbar() {
                                         className="w-full flex items-center justify-center gap-3 py-3.5 bg-white text-gray-800 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-[1.02] shadow-lg text-sm disabled:opacity-60 disabled:cursor-not-allowed"
                                     >
                                         <GoogleIcon size={20} />
-                                        Continue with Google
+                                        Sign in with Google
                                     </button>
 
                                     <div className="flex items-center gap-4 my-6">
@@ -624,7 +624,7 @@ export default function Navbar() {
                                         className="w-full flex items-center justify-center gap-3 py-3.5 bg-gray-800 border border-gray-700 text-white font-semibold rounded-xl hover:bg-gray-700 transition-all duration-200 hover:border-cyan-500/30 text-sm"
                                     >
                                         <Mail size={18} className="text-cyan-400" />
-                                        Login Link
+                                        Login with Email
                                     </button>
                                 </>
                             )}
@@ -645,7 +645,7 @@ export default function Navbar() {
                                         disabled={loginLoading || !identityValue.includes('@')}
                                         className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-cyan-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {loginLoading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Login Link'}
+                                        {loginLoading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Login with Email'}
                                     </button>
                                 </div>
                             )}
