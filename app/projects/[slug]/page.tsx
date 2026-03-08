@@ -176,13 +176,14 @@ function ProjectDetailClient({ slug }: { slug: string }) {
             </div>
 
             {/* Components */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden relative">
+              {!isPurchased && <LockedOverlay title="Components List" />}
               <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-800">
                 <Package size={16} className="text-green-400" />
                 <span className="text-sm font-medium text-gray-300">Components Required</span>
                 <span className="ml-auto text-xs text-gray-600 font-mono">{project.components.length} items</span>
               </div>
-              <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className={`p-5 grid grid-cols-1 sm:grid-cols-2 gap-2 ${!isPurchased ? 'blur-md select-none opacity-20' : ''}`}>
                 {project.components.map((comp, i) => (
                   <div key={i} className="flex items-center gap-2.5 py-2 px-3 bg-gray-800/50 rounded-lg">
                     <CheckCircle size={14} className="text-green-400 flex-shrink-0" />
