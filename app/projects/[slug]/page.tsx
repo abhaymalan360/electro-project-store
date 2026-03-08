@@ -24,13 +24,26 @@ const getSubjectIcon = (subject: string) => {
   return <Tag size={11} />;
 };
 
+import { useOrders } from "@/components/OrderContext";
+import { useAuth } from "@/components/AuthContext";
+import { Lock } from "lucide-react";
+
 function ProjectDetailClient({ slug }: { slug: string }) {
   const project = getProjectBySlug(slug);
   if (!project) notFound();
 
   const { items, addToCart, updateQuantity, removeFromCart } = useCart();
+  const { user, isLoggedIn } = useAuth();
+  const { orders } = useOrders();
   const { showToast } = useToast();
   const [imgError, setImgError] = useState(false);
+
+  // Check if project is purchased and delivered
+  const isPurchased = orders.some(
+    (order) =>
+      order.status === "delivered" &&
+      order.items.some((item) => item.project.id === project.id)
+  );
 
   const cartItem = items.find((i) => i.project.id === project.id);
   const quantity = cartItem ? cartItem.quantity : 0;
@@ -55,6 +68,27 @@ function ProjectDetailClient({ slug }: { slug: string }) {
 
   const isESP32 = project.technology === "ESP32";
   const hasRealImage = project.image && project.image.endsWith(".png");
+
+  // Reusable Locked Overlay Component
+  const LockedOverlay = ({ title }: { title: string }) => (
+    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gray-950/80 backdrop-blur-md rounded-2xl border border-dashed border-cyan-500/30 p-6 text-center animate-in fade-in zoom-in duration-500">
+      <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border border-cyan-500/20 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-cyan-500/10">
+        <Lock className="text-cyan-400" size={32} />
+      </div>
+      <h3 className="text-xl font-black text-white mb-2">{title} Locked</h3>
+      <p className="text-gray-400 text-sm max-w-[250px] mb-6">
+        Purchase this project to unlock complete source code, circuit diagrams, and professional build resources.
+      </p>
+      {!isLoggedIn ? (
+        <p className="text-xs text-orange-400 font-bold uppercase tracking-widest">Login required to view purchases</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs text-cyan-400 font-bold uppercase tracking-widest">Awaiting verification after purchase</p>
+          <p className="text-[10px] text-gray-600 max-w-[200px] mx-auto">Once your order is marked as delivered in the dashboard, this content will unlock automatically.</p>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <main className="min-h-screen bg-gray-950 text-white pt-24 pb-20">
@@ -106,13 +140,14 @@ function ProjectDetailClient({ slug }: { slug: string }) {
             </div>
 
             {/* Circuit Diagram Placeholder */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden relative">
+              {!isPurchased && <LockedOverlay title="Circuit Diagram" />}
               <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-800 bg-gray-900/80">
                 <CircuitBoard size={16} className="text-cyan-400" />
                 <span className="text-sm font-medium text-gray-300">Circuit Diagram</span>
                 <span className="ml-auto text-xs text-gray-600 font-mono">schematic</span>
               </div>
-              <div className="h-56 flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-950">
+              <div className={`h-56 flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-950 ${!isPurchased ? 'blur-sm grayscale' : ''}`}>
                 <div className="text-center">
                   <div className="w-20 h-20 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <CircuitBoard size={32} className="text-gray-600" />
@@ -124,7 +159,8 @@ function ProjectDetailClient({ slug }: { slug: string }) {
             </div>
 
             {/* Code Section */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden relative">
+              {!isPurchased && <LockedOverlay title="Source Code" />}
               <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-800 bg-gray-900/80">
                 <Code2 size={16} className="text-orange-400" />
                 <span className="text-sm font-medium text-gray-300">{project.technology} Source Code</span>
@@ -134,7 +170,7 @@ function ProjectDetailClient({ slug }: { slug: string }) {
                   <span className="w-3 h-3 bg-green-500/60 rounded-full" />
                 </div>
               </div>
-              <pre className="p-5 overflow-x-auto text-sm font-mono leading-relaxed">
+              <pre className={`p-5 overflow-x-auto text-sm font-mono leading-relaxed ${!isPurchased ? 'blur-md select-none opacity-20' : ''}`}>
                 <code className="text-gray-300">{project.code}</code>
               </pre>
             </div>
@@ -184,7 +220,12 @@ function ProjectDetailClient({ slug }: { slug: string }) {
                   </div>
                 </div>
 
-                {quantity > 0 ? (
+                {isPurchased ? (
+                  <div className="w-full flex items-center justify-center gap-2 py-3.5 bg-green-500/10 border border-green-500/30 text-green-400 rounded-xl font-bold text-sm">
+                    <CheckCircle size={18} />
+                    Project Purchased
+                  </div>
+                ) : quantity > 0 ? (
                   <>
                     {/* Quantity Controls */}
                     <div className="flex items-center gap-3">
