@@ -9,12 +9,17 @@ import {
     setPersistence,
     browserLocalPersistence,
     User as FirebaseUser,
+    signInWithPhoneNumber,
+    sendSignInLinkToEmail,
+    isSignInWithEmailLink,
+    signInWithEmailLink,
 } from "firebase/auth";
 
 export interface User {
     uid: string;
     name: string;
     email: string;
+    phoneNumber?: string;
     avatar?: string;
 }
 
@@ -24,6 +29,9 @@ interface AuthContextType {
     loading: boolean;
     isAdmin: boolean;
     loginWithGoogle: () => Promise<void>;
+    loginWithPhone: (phoneNumber: string, recaptchaVerifier: any) => Promise<any>;
+    verifyPhoneOTP: (verificationInstance: any, code: string) => Promise<void>;
+    sendEmailLink: (email: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -47,6 +55,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth state changes (session persists across refreshes)
     useEffect(() => {
+        // Handle Email Link redirection
+        if (typeof window !== "undefined" && isSignInWithEmailLink(auth, window.location.href)) {
+            let email = window.localStorage.getItem('emailForSignIn');
+            if (!email) {
+                email = window.prompt('Please provide your email for confirmation');
+            }
+            if (email) {
+                signInWithEmailLink(auth, email, window.location.href)
+                    .then(() => {
+                        window.localStorage.removeItem('emailForSignIn');
+                        // Remove search params from URL
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    })
+                    .catch((error) => {
+                        console.error("Email link sign in error:", error);
+                    });
+            }
+        }
+
         const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
             if (fbUser) {
                 setUser(firebaseUserToUser(fbUser));
@@ -106,6 +133,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, []);
 
+    const loginWithPhone = useCallback(async (phoneNumber: string, recaptchaVerifier: any) => {
+        try {
+            await setPersistence(auth, browserLocalPersistence);
+            const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+            return confirmationResult;
+        } catch (error: any) {
+            console.error("Phone login initiation failed:", error);
+            throw error;
+        }
+    }, []);
+
+    const verifyPhoneOTP = useCallback(async (confirmationResult: any, code: string) => {
+        try {
+            const result = await confirmationResult.confirm(code);
+            setUser(firebaseUserToUser(result.user));
+            setIsAdmin(result.user.email === ADMIN_EMAIL);
+        } catch (error: any) {
+            console.error("OTP verification failed:", error);
+            throw error;
+        }
+    }, []);
+
+    const sendEmailLink = useCallback(async (email: string) => {
+        const actionCodeSettings = {
+            url: window.location.origin + "/login-callback", // Using a specific callback route
+            handleCodeInApp: true,
+        };
+        try {
+            await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+            window.localStorage.setItem('emailForSignIn', email);
+        } catch (error: any) {
+            console.error("Send email link failed:", error);
+            throw error;
+        }
+    }, []);
+
     const logout = useCallback(async () => {
         try {
             await signOut(auth);
@@ -116,8 +179,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, isLoggedIn: !!user, isAdmin, loading, loginWithGoogle, logout }}>
+        <AuthContext.Provider value={{
+            user,
+            isLoggedIn: !!user,
+            isAdmin,
+            loading,
+            loginWithGoogle,
+            loginWithPhone,
+            verifyPhoneOTP,
+            sendEmailLink,
+            logout
+        }}>
             {children}
+            <div id="recaptcha-container"></div>
         </AuthContext.Provider>
     );
 }

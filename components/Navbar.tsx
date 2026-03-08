@@ -7,7 +7,9 @@ import { useCart } from "./CartContext";
 import { useAuth } from "./AuthContext";
 import { useTheme } from "./ThemeContext";
 import { projects, categories } from "@/data/projects";
-import { ShoppingCart, Menu, X, Cpu, User, LogOut, ChevronDown, Search, Sun, Moon, Monitor, Package, Zap, CircuitBoard, ChevronRight, ArrowRight } from "lucide-react";
+import { ShoppingCart, Menu, X, Cpu, User, LogOut, ChevronDown, Search, Sun, Moon, Monitor, Package, Zap, CircuitBoard, ChevronRight, ArrowRight, Phone, Mail, CheckCircle, Loader2 } from "lucide-react";
+import { RecaptchaVerifier } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 // Google SVG icon
 function GoogleIcon({ size = 18 }: { size?: number }) {
@@ -23,7 +25,14 @@ function GoogleIcon({ size = 18 }: { size?: number }) {
 
 export default function Navbar() {
     const { totalItems } = useCart();
-    const { user, isLoggedIn, isAdmin, loginWithGoogle, logout } = useAuth();
+
+    // OTP states
+    const [authStep, setAuthStep] = useState<'method' | 'phone-input' | 'email-input' | 'otp-input' | 'email-sent'>('method');
+    const [identityValue, setIdentityValue] = useState("");
+    const [otpValue, setOtpValue] = useState("");
+    const [confirmationResult, setConfirmationResult] = useState<any>(null);
+
+    const { user, isLoggedIn, isAdmin, loginWithGoogle, loginWithPhone, verifyPhoneOTP, sendEmailLink, logout } = useAuth();
     const { theme, setTheme } = useTheme();
     const router = useRouter();
     const [menuOpen, setMenuOpen] = useState(false);
@@ -98,9 +107,62 @@ export default function Navbar() {
 
     const handleGoogleLogin = async () => {
         setLoginLoading(true);
-        await loginWithGoogle();
-        setLoginLoading(false);
-        setShowLoginModal(false);
+        try {
+            await loginWithGoogle();
+            setShowLoginModal(false);
+            setAuthStep('method');
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoginLoading(false);
+        }
+    };
+
+    const handlePhoneSignIn = async () => {
+        if (!identityValue || identityValue.length !== 10) return;
+        setLoginLoading(true);
+        try {
+            // Recaptcha initialization
+            const verifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+                'size': 'invisible',
+            });
+            const result = await loginWithPhone(`+91${identityValue}`, verifier);
+            setConfirmationResult(result);
+            setAuthStep('otp-input');
+        } catch (error: any) {
+            alert(error.message);
+        } finally {
+            setLoginLoading(false);
+        }
+    };
+
+    const handleVerifyOTP = async () => {
+        if (!otpValue || otpValue.length !== 6 || !confirmationResult) return;
+        setLoginLoading(true);
+        try {
+            await verifyPhoneOTP(confirmationResult, otpValue);
+            setShowLoginModal(false);
+            setAuthStep('method');
+            setIdentityValue('');
+            setOtpValue('');
+        } catch (error: any) {
+            alert("Invalid OTP. Please try again.");
+        } finally {
+            setLoginLoading(false);
+        }
+    };
+
+    const handleEmailSignIn = async () => {
+        if (!identityValue || !identityValue.includes('@')) return;
+        setLoginLoading(true);
+        try {
+            await sendEmailLink(identityValue);
+            setAuthStep('email-sent');
+        } catch (error: any) {
+            alert(error.message);
+        } finally {
+            setLoginLoading(false);
+        }
     };
 
     const handleLogout = async () => {
@@ -534,38 +596,181 @@ export default function Navbar() {
                     <div className="relative bg-gray-900 border border-gray-700 rounded-3xl max-w-sm w-full p-8 shadow-2xl shadow-cyan-500/10 animate-in">
                         {/* Close */}
                         <button
-                            onClick={() => setShowLoginModal(false)}
+                            onClick={() => {
+                                setShowLoginModal(false);
+                                setAuthStep('method');
+                                setIdentityValue('');
+                                setOtpValue('');
+                            }}
                             className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors rounded-lg hover:bg-gray-800"
                         >
                             <X size={20} />
                         </button>
 
+                        {/* Back Button for multi-step */}
+                        {authStep !== 'method' && (
+                            <button
+                                onClick={() => setAuthStep('method')}
+                                className="absolute top-4 left-4 p-2 text-gray-500 hover:text-white transition-colors rounded-lg hover:bg-gray-800"
+                            >
+                                <ChevronDown size={20} className="rotate-90" />
+                            </button>
+                        )}
+
                         {/* Header */}
                         <div className="text-center mb-8">
                             <div className="w-14 h-14 bg-gradient-to-br from-cyan-500/20 to-cyan-500/5 border border-cyan-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <User size={28} className="text-cyan-400" />
+                                {authStep === 'phone-input' || authStep === 'otp-input' ? (
+                                    <Phone size={28} className="text-cyan-400" />
+                                ) : authStep === 'email-input' || authStep === 'email-sent' ? (
+                                    <Mail size={28} className="text-cyan-400" />
+                                ) : (
+                                    <User size={28} className="text-cyan-400" />
+                                )}
                             </div>
-                            <h2 className="text-2xl font-black text-white mb-1">Welcome</h2>
-                            <p className="text-gray-400 text-sm">Sign in to track your orders and save favorites</p>
+                            <h2 className="text-2xl font-black text-white mb-1">
+                                {authStep === 'method' ? 'Welcome' :
+                                    authStep === 'phone-input' ? 'Phone Login' :
+                                        authStep === 'email-input' ? 'Email Login' :
+                                            authStep === 'otp-input' ? 'Verify OTP' : 'Check Email'}
+                            </h2>
+                            <p className="text-gray-400 text-sm">
+                                {authStep === 'method' ? 'Sign in to track your orders and save favorites' :
+                                    authStep === 'phone-input' ? 'Enter your mobile number to receive a code' :
+                                        authStep === 'email-input' ? 'We\'ll send a magic link to your inbox' :
+                                            authStep === 'otp-input' ? `Enter the 6-digit code sent to ${identityValue}` : 'Click the link in your email to sign in'}
+                            </p>
                         </div>
 
-                        {/* Google Login */}
-                        <button
-                            onClick={handleGoogleLogin}
-                            disabled={loginLoading}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 bg-white text-gray-800 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-[1.02] shadow-lg text-sm disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                            {loginLoading ? (
-                                <div className="w-5 h-5 border-2 border-gray-400 border-t-gray-800 rounded-full animate-spin" />
-                            ) : (
-                                <GoogleIcon size={20} />
+                        {/* Step Content */}
+                        <div className="space-y-4">
+                            {authStep === 'method' && (
+                                <>
+                                    <button
+                                        onClick={handleGoogleLogin}
+                                        disabled={loginLoading}
+                                        className="w-full flex items-center justify-center gap-3 py-3.5 bg-white text-gray-800 font-semibold rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-[1.02] shadow-lg text-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                                    >
+                                        <GoogleIcon size={20} />
+                                        Continue with Google
+                                    </button>
+
+                                    <div className="flex items-center gap-4 my-6">
+                                        <div className="h-px bg-gray-800 flex-1"></div>
+                                        <span className="text-gray-600 text-[10px] font-black uppercase tracking-widest">or</span>
+                                        <div className="h-px bg-gray-800 flex-1"></div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setAuthStep('phone-input')}
+                                        className="w-full flex items-center justify-center gap-3 py-3.5 bg-gray-800 border border-gray-700 text-white font-semibold rounded-xl hover:bg-gray-700 transition-all duration-200 hover:border-cyan-500/30 text-sm"
+                                    >
+                                        <Phone size={18} className="text-green-400" />
+                                        Continue with Phone
+                                    </button>
+
+                                    <button
+                                        onClick={() => setAuthStep('email-input')}
+                                        className="w-full flex items-center justify-center gap-3 py-3.5 bg-gray-800 border border-gray-700 text-white font-semibold rounded-xl hover:bg-gray-700 transition-all duration-200 hover:border-cyan-500/30 text-sm"
+                                    >
+                                        <Mail size={18} className="text-cyan-400" />
+                                        Continue with Email
+                                    </button>
+                                </>
                             )}
-                            {loginLoading ? "Signing in..." : "Continue with Google"}
-                        </button>
+
+                            {authStep === 'phone-input' && (
+                                <div className="space-y-4 animate-in">
+                                    <div className="relative">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-bold">+91</span>
+                                        <input
+                                            type="tel"
+                                            placeholder="Mobile Number"
+                                            value={identityValue}
+                                            onChange={(e) => setIdentityValue(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                            className="w-full bg-gray-950 border border-gray-800 rounded-xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-cyan-500 transition-colors text-white"
+                                            autoFocus
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={handlePhoneSignIn}
+                                        disabled={loginLoading || identityValue.length !== 10}
+                                        className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-cyan-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {loginLoading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Send Verification Code'}
+                                    </button>
+                                    <div id="recaptcha-container"></div>
+                                </div>
+                            )}
+
+                            {authStep === 'otp-input' && (
+                                <div className="space-y-4 animate-in">
+                                    <input
+                                        type="text"
+                                        placeholder="6-Digit OTP"
+                                        value={otpValue}
+                                        onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        className="w-full bg-gray-950 border border-gray-800 rounded-xl py-4 text-center text-xl font-black tracking-[0.5em] focus:outline-none focus:border-cyan-500 transition-colors text-white"
+                                        autoFocus
+                                    />
+                                    <button
+                                        onClick={handleVerifyOTP}
+                                        disabled={loginLoading || otpValue.length !== 6}
+                                        className="w-full py-4 bg-green-500 hover:bg-green-400 text-gray-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-green-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {loginLoading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Verify & Login'}
+                                    </button>
+                                    <button
+                                        onClick={() => setAuthStep('phone-input')}
+                                        className="w-full text-center text-[10px] text-gray-500 uppercase font-black tracking-widest hover:text-white"
+                                    >
+                                        Edit Number
+                                    </button>
+                                </div>
+                            )}
+
+                            {authStep === 'email-input' && (
+                                <div className="space-y-4 animate-in">
+                                    <input
+                                        type="email"
+                                        placeholder="Enter your email"
+                                        value={identityValue}
+                                        onChange={(e) => setIdentityValue(e.target.value)}
+                                        className="w-full bg-gray-950 border border-gray-800 rounded-xl py-3.5 px-4 text-sm focus:outline-none focus:border-cyan-500 transition-colors text-white"
+                                        autoFocus
+                                    />
+                                    <button
+                                        onClick={handleEmailSignIn}
+                                        disabled={loginLoading || !identityValue.includes('@')}
+                                        className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-cyan-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {loginLoading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Email Magic Link'}
+                                    </button>
+                                </div>
+                            )}
+
+                            {authStep === 'email-sent' && (
+                                <div className="text-center py-4 animate-in">
+                                    <div className="w-16 h-16 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <CheckCircle className="text-green-500" size={32} />
+                                    </div>
+                                    <p className="text-white font-bold mb-2">Check your inbox!</p>
+                                    <p className="text-gray-400 text-xs leading-relaxed">
+                                        We've sent a sign-in link to <span className="text-cyan-400 font-bold">{identityValue}</span>. Open the link to complete your login.
+                                    </p>
+                                    <button
+                                        onClick={() => setAuthStep('method')}
+                                        className="mt-8 text-xs text-gray-500 hover:text-white transition-colors"
+                                    >
+                                        Try another method
+                                    </button>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Terms */}
-                        <p className="text-gray-600 text-xs text-center mt-6 leading-relaxed">
-                            By continuing, you agree to our Terms of Service and Privacy Policy
+                        <p className="text-gray-600 text-[10px] text-center mt-8 leading-relaxed font-medium">
+                            By continuing, you agree to our <span className="text-gray-500">Terms of Service</span> and <span className="text-gray-500">Privacy Policy</span>
                         </p>
                     </div>
                 </div>
