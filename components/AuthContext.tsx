@@ -131,12 +131,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
     const sendEmailLink = useCallback(async (email: string) => {
-        const actionCodeSettings = {
-            url: window.location.origin + "/login-callback", // Using a specific callback route
-            handleCodeInApp: true,
-        };
         try {
-            await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+            const response = await fetch('/api/auth/send-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Failed to send login link');
+            }
+
             window.localStorage.setItem('emailForSignIn', email);
         } catch (error: any) {
             console.error("Send email link failed:", error);
