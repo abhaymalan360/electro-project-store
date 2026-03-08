@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Zap, Shield, BookOpen, Star, ChevronRight, Cpu, CircuitBoard, Wifi, Battery } from "lucide-react";
+import { ArrowRight, Zap, Shield, BookOpen, Star, ChevronRight, Cpu, CircuitBoard, Wifi, Battery, MessageCircle } from "lucide-react";
 import { getFeaturedProjects, categories } from "@/data/projects";
 import ProjectCard from "@/components/ProjectCard";
 
@@ -59,11 +59,13 @@ export default function HomePage() {
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
-              href="/projects#categories"
-              className="group inline-flex items-center gap-2 px-8 py-4 bg-white/5 border border-white/10 text-gray-300 font-semibold rounded-2xl hover:bg-white/10 hover:border-white/20 hover:text-white transition-all duration-300 text-base backdrop-blur-sm"
+              href={`https://wa.me/918979370679?text=${encodeURIComponent("Hey I am [Name] and I want to talk you about a project")}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-2 px-8 py-4 bg-green-500/10 border border-green-500/20 text-green-400 font-semibold rounded-2xl hover:bg-green-500/20 hover:border-green-500/40 transition-all duration-300 text-base backdrop-blur-sm shadow-lg shadow-green-500/5"
             >
-              View Categories
-              <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+              <MessageCircle size={18} className="group-hover:scale-110 transition-transform" />
+              Chat on WhatsApp
             </Link>
           </div>
 

@@ -8,6 +8,7 @@ import { ToastProvider } from "@/components/ToastContext";
 import { OrderProvider } from "@/components/OrderContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import WhatsAppFloat from "@/components/WhatsAppFloat";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,6 +37,7 @@ export default function RootLayout({
                   <Navbar />
                   {children}
                   <Footer />
+                  <WhatsAppFloat />
                 </CartProvider>
               </OrderProvider>
             </AuthProvider>
