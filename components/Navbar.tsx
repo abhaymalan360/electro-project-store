@@ -591,11 +591,11 @@ export default function Navbar() {
                             </div>
                             <h2 className="text-2xl font-black text-white mb-1">
                                 {authStep === 'method' ? 'Welcome' :
-                                    authStep === 'email-input' ? 'Email Login' : 'Check Email'}
+                                    authStep === 'email-input' ? 'Login Link' : 'Check Email'}
                             </h2>
                             <p className="text-gray-400 text-sm">
                                 {authStep === 'method' ? 'Sign in to track your orders and save favorites' :
-                                    authStep === 'email-input' ? 'We\'ll send a magic link to your inbox' :
+                                    authStep === 'email-input' ? 'We\'ll send a Login link to your inbox' :
                                         'Click the link in your email to sign in'}
                             </p>
                         </div>
@@ -624,7 +624,7 @@ export default function Navbar() {
                                         className="w-full flex items-center justify-center gap-3 py-3.5 bg-gray-800 border border-gray-700 text-white font-semibold rounded-xl hover:bg-gray-700 transition-all duration-200 hover:border-cyan-500/30 text-sm"
                                     >
                                         <Mail size={18} className="text-cyan-400" />
-                                        Continue with Email
+                                        Login Link
                                     </button>
                                 </>
                             )}
@@ -645,7 +645,7 @@ export default function Navbar() {
                                         disabled={loginLoading || !identityValue.includes('@')}
                                         className="w-full py-4 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-cyan-900/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        {loginLoading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Email Magic Link'}
+                                        {loginLoading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Login Link'}
                                     </button>
                                 </div>
                             )}
