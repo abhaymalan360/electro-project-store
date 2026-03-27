@@ -3,8 +3,10 @@ import { ArrowRight, Zap, Shield, BookOpen, Star, ChevronRight, Cpu, CircuitBoar
 import { getFeaturedProjects, categories } from "@/data/projects";
 import ProjectCard from "@/components/ProjectCard";
 
+export const dynamic = "force-dynamic";
+
 export default function HomePage() {
-  const featured = getFeaturedProjects();
+  const featured = getFeaturedProjects().slice(0, 4).sort((a, b) => a.price - b.price);
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -55,7 +57,7 @@ export default function HomePage() {
               href="/projects"
               className="group inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-cyan-500 to-cyan-400 text-gray-950 font-bold rounded-2xl hover:from-cyan-400 hover:to-cyan-300 transition-all duration-300 hover:scale-105 shadow-xl shadow-cyan-500/25 text-base"
             >
-              Browse Projects
+              Explore Projects
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
@@ -67,6 +69,23 @@ export default function HomePage() {
               <MessageCircle size={18} className="group-hover:scale-110 transition-transform" />
               Chat on WhatsApp
             </Link>
+          </div>
+
+          {/* Subjects in Hero */}
+          <div className="animate-fade-in-up-delay-3 mt-10 flex flex-wrap justify-center gap-3 max-w-3xl mx-auto">
+            {[
+              { name: "Emerging & Disruptive Tech", color: "text-amber-400 border-amber-500/20 bg-amber-500/10 hover:bg-amber-500/20" },
+              { name: "Engineering Physics", color: "text-blue-400 border-blue-500/20 bg-blue-500/10 hover:bg-blue-500/20" },
+              { name: "Digital Electronics", color: "text-indigo-400 border-indigo-500/20 bg-indigo-500/10 hover:bg-indigo-500/20" },
+              { name: "Semiconductor Physics", color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20" },
+            ].map((cat) => (
+              <span
+                key={cat.name}
+                className={`px-4 py-2 rounded-xl border text-sm font-semibold backdrop-blur-sm transition-all duration-300 ${cat.color}`}
+              >
+                {cat.name}
+              </span>
+            ))}
           </div>
 
           {/* Stats */}

@@ -51,6 +51,43 @@ void loop() {
     featured: true,
   },
   {
+    id: 3,
+    title: "Clap Switch using Arduino",
+    slug: "clap-switch-arduino",
+    description: "Turn lights on or off with a clap sound using a sound sensor and Arduino relay circuit.",
+    fullDescription: "A fun and practical project where clapping your hands toggles a relay to switch a light or appliance. Uses a sound detection sensor (KY-037) to pick up the clap sound, and an Arduino processes the signal to toggle the relay state. Great introduction to sound sensors and relay control.",
+    subject: "Digital Electronics",
+    price: 1399,
+    image: "/images/clap-switch.png",
+    technology: "Arduino",
+    components: ["Arduino UNO", "Sound Sensor Module (KY-037)", "Relay Module (5V)", "LED", "Resistors", "Breadboard", "Jumper Wires"],
+    code: `// Clap Switch Arduino
+const int soundPin = 2;
+const int relayPin = 8;
+bool relayState = false;
+int lastState = HIGH;
+unsigned long lastDebounce = 0;
+
+void setup() {
+  pinMode(soundPin, INPUT);
+  pinMode(relayPin, OUTPUT);
+  digitalWrite(relayPin, LOW);
+}
+
+void loop() {
+  int reading = digitalRead(soundPin);
+  if (reading == LOW && lastState == HIGH) {
+    if (millis() - lastDebounce > 200) {
+      relayState = !relayState;
+      digitalWrite(relayPin, relayState);
+      lastDebounce = millis();
+    }
+  }
+  lastState = reading;
+}`,
+    featured: true,
+  },
+  {
     id: 2,
     title: "Home Automation using ESP32",
     slug: "home-automation-esp32",
@@ -89,43 +126,6 @@ void setup() {
 }
 
 void loop() { server.handleClient(); }`,
-    featured: true,
-  },
-  {
-    id: 3,
-    title: "Clap Switch using Arduino",
-    slug: "clap-switch-arduino",
-    description: "Turn lights on or off with a clap sound using a sound sensor and Arduino relay circuit.",
-    fullDescription: "A fun and practical project where clapping your hands toggles a relay to switch a light or appliance. Uses a sound detection sensor (KY-037) to pick up the clap sound, and an Arduino processes the signal to toggle the relay state. Great introduction to sound sensors and relay control.",
-    subject: "Digital Electronics",
-    price: 1399,
-    image: "/images/clap-switch.png",
-    technology: "Arduino",
-    components: ["Arduino UNO", "Sound Sensor Module (KY-037)", "Relay Module (5V)", "LED", "Resistors", "Breadboard", "Jumper Wires"],
-    code: `// Clap Switch Arduino
-const int soundPin = 2;
-const int relayPin = 8;
-bool relayState = false;
-int lastState = HIGH;
-unsigned long lastDebounce = 0;
-
-void setup() {
-  pinMode(soundPin, INPUT);
-  pinMode(relayPin, OUTPUT);
-  digitalWrite(relayPin, LOW);
-}
-
-void loop() {
-  int reading = digitalRead(soundPin);
-  if (reading == LOW && lastState == HIGH) {
-    if (millis() - lastDebounce > 200) {
-      relayState = !relayState;
-      digitalWrite(relayPin, relayState);
-      lastDebounce = millis();
-    }
-  }
-  lastState = reading;
-}`,
     featured: true,
   },
   {
@@ -512,7 +512,7 @@ void loop() {
   }
   delay(100);
 }`,
-    featured: true,
+    featured: false,
   },
   {
     id: 14,
@@ -770,7 +770,7 @@ void loop() {
   Serial.println(pos);
   delay(50);
 }`,
-    featured: true,
+    featured: false,
   },
   {
     id: 19,
